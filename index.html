@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FoodDB</title>
+    <style>
+        body {
+            background-color: rgba(23, 26, 25, 0.86);
+            color: white;
+            display: flex;
+            justify-content: center;
+            flex-direction: column;
+            border: 0px solid red;
+            margin: 2;
+        }
+
+        #header {
+            text-align: center;
+        }
+
+        #foodmenu-container {
+            border: 0px solid red;
+            display: flex;
+            border: 0px solid rgb(32, 7, 255);
+            justify-content: center;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        .food-list {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            margin-top: 0;
+        }
+        .food-item {
+            list-style: none;
+            display: flex;
+            margin: 0;
+            justify-content: space-between;
+            border: 1px solid rgb(53, 135, 207);
+            width: 100%;
+        }
+
+        .food-item p {
+            border-left: 1px solid rgb(53, 135, 207);
+            padding-inline: 30px;
+            padding-block: 5px;
+            width: 100%;
+            margin: 0;
+            text-align: center;
+        }
+
+        .contianer-table {
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            width: 100%;
+            border: 0px solid red;
+        }
+
+        .toptable {
+            display: flex;
+            border: 0px solid rgb(255, 222, 9);
+            width: 100%;
+            margin: 0;
+            list-style: none;
+        }
+
+        .toptable li {
+            border: 1px solid rgb(139, 139, 139);
+            width: 100%;
+            text-align: center;
+            padding-inline: 60px;
+            padding-block: 5px;
+            margin: 0;
+            color: black;
+            background-color: rgb(255, 255, 255);
+        }
+    </style>
+</head>
+
+<body>
+    <h1 id="header">FoodDB</h1>
+    <div class="contianer-table">
+        <div class="toptable">
+            <ul class="toptable">
+                <li>Name</li>
+                <li>Quantity</li>
+                <li>Price</li>
+                <li>Datetime</li>
+            </ul>
+        </div>
+        <div id="foodmenu-container">
+            
+
+        </div>
+    </div>
+
+    <script>
+        async function loadFoodMenu() {
+            try {
+                // Corrected the fetch URL
+                const response = await fetch('http://localhost:3000/foodmenu/');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const foodMenu = await response.json();
+
+                const container = document.getElementById('foodmenu-container');
+                if (foodMenu.length > 0) {
+                    // Create a list to display the food items
+                    container.innerHTML = `
+                        <ul class="food-list">
+                            ${foodMenu.map(item => `
+                                <li class="food-item">
+                                    <p>${item.name}</p> 
+                                    <p>${item.quantity}</p>
+                                    <p>${item.price}</p>
+                                    <p>${item.datetime}</p>
+                                </li>
+                            `).join('')}
+                        </ul>
+                    `;
+                } else {
+                    container.innerHTML = '<p>No food items found.</p>';
+                }
+            } catch (error) {
+                console.error('Error fetching food menu:', error);
+                const container = document.getElementById('foodmenu-container');
+                container.innerHTML = '<p>Error loading menu. Is the server running?</p>';
+            }
+        }
+
+        // Call the function to load the menu when the page loads
+        loadFoodMenu();
+    </script>
+</body>
+
+</html>

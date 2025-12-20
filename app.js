@@ -67,6 +67,8 @@ app.post("/foodmenu", (req, res) => {
 app.get('/foodmenu', (req, res) => {
     db.all(`SELECT * FROM foodmenu`, [], (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });
+
+        // Change res.json(rows) to this:
         res.json(rows);
     });
 });
@@ -100,7 +102,7 @@ app.delete('/foodmenu/:id', (req, res) => {
     );
 });
 
-app.listen(3000, "0.0.0.0", () => {
-  console.log("Server running on port 3000");
+app.listen(PORT, () => {
+    console.log("Server running on port 3000");
 });
 
