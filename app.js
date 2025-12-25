@@ -5,10 +5,10 @@ const cors = require('cors');
 const app = express();
 
 app.use(express.json());
-app.use(cors());
 
+// Fix 1: Use cors only once
 app.use(cors({
-    origin: '*', // allow all origins (OK for dev)
+    origin: '*',
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
@@ -16,6 +16,7 @@ app.use(cors({
 const db = new sqlite3.Database('./database.db');
 db.run("PRAGMA journal_mode = WAL;");
 
+// Your table creation and migration (unchanged)
 db.run(`
 CREATE TABLE IF NOT EXISTS foodmenu (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -25,12 +26,9 @@ CREATE TABLE IF NOT EXISTS foodmenu (
   datetime TEXT
 )
 `);
-// Simple migration to add 'price' and 'datetime' columns if they don't exist
+
 db.all("PRAGMA table_info(foodmenu)", (err, columns) => {
-    if (err) {
-        console.error("Could not get table info:", err.message);
-        return;
-    }
+    if (err) return console.error("Could not get table info:", err.message);
     const columnNames = columns.map(c => c.name);
     if (!columnNames.includes("price")) {
         db.run("ALTER TABLE foodmenu ADD COLUMN price INTEGER");
@@ -40,6 +38,15 @@ db.all("PRAGMA table_info(foodmenu)", (err, columns) => {
     }
 });
 
+// Fix 2: Add root route (no more 404 on /)
+app.get('/', (req, res) => {
+    res.send('Food DB API is running! Use /foodmenu for data.');
+});
+
+// Fix 3: Stop favicon 502 errors
+app.get('/favicon.ico', (req, res) => res.status(204).end());
+
+// Your existing routes (POST, GET, PUT, DELETE)
 app.post("/foodmenu", (req, res) => {
     const items = Array.isArray(req.body) ? req.body : [req.body];
     db.serialize(() => {
@@ -48,7 +55,6 @@ app.post("/foodmenu", (req, res) => {
         );
         const now = new Date();
         const datetime = now.toLocaleString();
-
 
         items.forEach(item => {
             if (item.name && typeof item.quantity === 'number') {
@@ -66,19 +72,18 @@ app.post("/foodmenu", (req, res) => {
 app.get('/foodmenu', (req, res) => {
     db.all(`SELECT * FROM foodmenu`, [], (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });
-
-        // Change res.json(rows) to this:
         res.json(rows);
     });
 });
 
+// Fix 4: Correct PUT route (proper columns + params order)
 app.put('/foodmenu/:id', (req, res) => {
     const { name, quantity, price, datetime } = req.body;
     const { id } = req.params;
 
     db.run(
-        `UPDATE foodmenu SET name = ?, quantity = ?, price = ? WHERE id = ?`,
-        [name, quantity, price, id, datetime],
+        `UPDATE foodmenu SET name = ?, quantity = ?, price = ?, datetime = ? WHERE id = ?`,
+        [name, quantity, price, datetime || new Date().toLocaleString(), id],
         function (err) {
             if (err) return res.status(500).json({ error: err.message });
             if (this.changes === 0) return res.status(404).json({ message: 'Order not found' });
@@ -90,19 +95,15 @@ app.put('/foodmenu/:id', (req, res) => {
 app.delete('/foodmenu/:id', (req, res) => {
     const { id } = req.params;
 
-    db.run(
-        `DELETE FROM foodmenu WHERE id = ?`,
-        [id],
-        function (err) {
-            if (err) return res.status(500).json({ error: err.message });
-            if (this.changes === 0) return res.status(404).json({ message: 'Order not found' });
-            res.json({ message: 'Order deleted' });
-        }
-    );
+    db.run(`DELETE FROM foodmenu WHERE id = ?`, [id], function (err) {
+        if (err) return res.status(500).json({ error: err.message });
+        if (this.changes === 0) return res.status(404).json({ message: 'Order not found' });
+        res.json({ message: 'Order deleted' });
+    });
 });
 
+// This part is already correct for Railway!
 const port = process.env.PORT || 3000;
 app.listen(port, '0.0.0.0', () => {
-  console.log(`Server listening on port ${port}`);
+    console.log(`Server listening on port ${port}`);
 });
-
