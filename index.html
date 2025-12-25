@@ -81,11 +81,15 @@
             color: black;
             background-color: rgb(255, 255, 255);
         }
+        #lenghtinorder{
+            margin-left: auto;
+        }
     </style>
 </head>
 
 <body>
-    <h1 id="header">FoodDB</h1>
+    <h1 id="header">Order</h1>
+    <label id="lenghtinorder"></label>
     <div class="contianer-table">
         <div class="toptable">
             <ul class="toptable">
@@ -110,22 +114,26 @@
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 const foodMenu = await response.json();
+             
 
                 const container = document.getElementById('foodmenu-container');
+                const orderlenght = document.getElementById('lenghtinorder');
+
                 if (foodMenu.length > 0) {
                     // Create a list to display the food items
                     container.innerHTML = `
                         <ul class="food-list">
-                            ${foodMenu.map(item => `
-                                <li class="food-item">
+                            ${foodMenu.map(item => ( `
+                                <li  class="food-item">
                                     <p>${item.name}</p> 
                                     <p>${item.quantity}</p>
                                     <p>${item.price}</p>
                                     <p>${item.datetime}</p>
                                 </li>
-                            `).join('')}
+                            `)).join('')}
                         </ul>
                     `;
+                    orderlenght.innerText = foodMenu.length;
                 } else {
                     container.innerHTML = '<p>No food items found.</p>';
                 }

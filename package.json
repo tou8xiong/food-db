@@ -7,7 +7,9 @@
   "type": "commonjs",
   "main": "app.js",
   "scripts": {
-    "test": "npm install express"
+    "test": "npm install express",
+    "start": "node app.js"
+    
   },
   "dependencies": {
     "cors": "^2.8.5",
