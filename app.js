@@ -13,7 +13,8 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-const db = new sqlite3.Database('./database.db');
+const dbPath = process.env.DB_PATH || './database.db';  // fallback for local dev
+const db = new sqlite3.Database(dbPath);
 db.run("PRAGMA journal_mode = WAL;");
 
 db.run(`
