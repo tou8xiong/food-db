@@ -5,7 +5,6 @@ const cors = require('cors');
 const app = express();
 
 app.use(express.json());
-app.use(cors());
 
 app.use(cors({
     origin: '*', // allow all origins (OK for dev)
@@ -13,8 +12,7 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-const dbPath = process.env.DB_PATH || './database.db';  // fallback for local dev
-const db = new sqlite3.Database(dbPath);
+const db = new sqlite3.Database('./database.db');
 db.run("PRAGMA journal_mode = WAL;");
 
 db.run(`
